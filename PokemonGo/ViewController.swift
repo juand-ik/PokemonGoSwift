@@ -7,19 +7,65 @@
 //
 
 import UIKit
+import MapKit
 
-class ViewController: UIViewController {
+class ViewController: UIViewController, CLLocationManagerDelegate
+{
 
-    override func viewDidLoad() {
+    @IBOutlet weak var mapView: MKMapView!
+    
+    let mapDistance : CLLocationDistance = 300
+    
+    var manager = CLLocationManager()
+    var updateCount = 0
+    
+    override func viewDidLoad()
+    {
         super.viewDidLoad()
-        // Do any additional setup after loading the view, typically from a nib.
+        self.manager.delegate = self
+        
+        if CLLocationManager.authorizationStatus() == .authorizedWhenInUse
+        {
+            print("ok, listo para los pokemon")
+            self.mapView.showsUserLocation = true
+            self.manager.startUpdatingLocation()
+        }
+        else
+        {
+            self.manager.requestWhenInUseAuthorization()
+        }
     }
 
-    override func didReceiveMemoryWarning() {
+    override func didReceiveMemoryWarning()
+    {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
     }
-
+    //MARK: Core Location MAnager Delegate
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation])
+    {
+        //print("Actualizando posición...")
+        if updateCount < 4
+        {
+            if (self.manager.location?.coordinate) != nil
+            {
+                let region = MKCoordinateRegionMakeWithDistance(self.manager.location!.coordinate, mapDistance, mapDistance)
+                self.mapView.setRegion(region, animated: true)
+                updateCount += 1
+            }
+        }
+        else
+        {
+            self.manager.stopUpdatingLocation()
+        }
+    }
+    @IBAction func updateUserLocation(_ sender: UIButton)
+    {
+        if (self.manager.location?.coordinate) != nil
+        {
+            let region = MKCoordinateRegionMakeWithDistance(self.manager.location!.coordinate, mapDistance, mapDistance)
+            self.mapView.setRegion(region, animated: true)
+        }
+    }
 
 }
 
